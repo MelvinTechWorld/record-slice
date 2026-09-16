@@ -37,4 +37,5 @@ curl call.
 | 1 | GET | `/api/notes/{publicId}` | User B fetched User A's note directly by its public identifier | `404 Not Found` | PASS |
 | 2 | DELETE | `/api/notes/{publicId}` | User B attempted to delete User A's note directly | `404 Not Found`; note confirmed still present in the database afterward (see file 04) | PASS |
 | 3 | GET | `/api/notes` | User B listed their own notes, checking whether User A's note appeared | `200 OK`, empty array — User A's note did not leak | PASS |
-| 4 | GET | `/api/notes/{publicId}` | User A (the real owner) fetched their
+| 4 | GET | `/api/notes/{publicId}` | User A (the real owner) fetched their own note, as a sanity check that the ownership check doesn't over-block | `200 OK` with real content | PASS |
+| 5 | GET | `/api/notes/{publicId}` | No session cookie
