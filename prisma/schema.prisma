@@ -19,6 +19,7 @@ model User {
   sessions             Session[]
   verificationCodes    VerificationCode[]
   passwordResetTokens  PasswordResetToken[]
+  notes                Note[]
 }
 
 model Session {
@@ -52,4 +53,33 @@ model RateLimit {
   key       String   @id
   points    Int      @default(1)
   expiresAt DateTime
+}
+
+// --- Assessment 4 additions below.
+
+model Note {
+  id        String   @id @default(uuid())   // internal PK — never leaves the server
+  publicId  String   @unique @default(cuid()) // exposed in URLs and the interface instead
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  // Every list query is WHERE userId = <session user> ORDER BY createdAt desc —
+  // this composite index carries that exact query.
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String   // who performed the deletion — no FK, deliberately: an
+                         // audit trail must survive even if the acting user's
+                         // account were ever deleted later
+  noteId       String   // the deleted note's internal id, stored as plain data —
+                         // no FK, because the Note row is gone by the time this
+                         // row is read; a live foreign key here is impossible
+  notePublicId String   // the note's public id, for a readable audit trail
+  noteTitle    String   // snapshot of the title at deletion time
+  deletedAt    DateTime @default(now())
 }
